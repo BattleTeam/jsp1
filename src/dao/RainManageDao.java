@@ -16,8 +16,9 @@ import java.util.List;
  * @Modified By:
  */
 public class RainManageDao  extends BaseDao{
-    Connection conn = null;
-    ResultSet rs = null;
+    Connection conn;
+    ResultSet rs;
+    PreparedStatement pstmt;
     /**
      * 查询所有的雨量监测信息，并且按照时间倒序排列
      * @return
@@ -29,7 +30,8 @@ public class RainManageDao  extends BaseDao{
 
         try {
         //编写SQL语句
-            String sql = "select id,districtName,monitorTime,rain,monitoringStation,monitoringAddress from rainquality";
+            String sql = "select id,districtName,monitorTime,rain,monitoringStation,monitoringAddress from rainquality " +
+                    "ORDER BY monitorTime DESC";
             //获取数据库链接
             conn = BaseDao.getConn();
             //创建执行SQL的对象
@@ -52,5 +54,36 @@ public class RainManageDao  extends BaseDao{
             e.getErrorCode();
         }
         return rainQualityList;
+    }
+    /**
+     * 新增雨量监测信息
+     * rain 雨量对象
+     * 是否添加成功:1表示成功，其他表示失败
+     */
+    public int addNewRainInfo(RainQuality rain){
+        int num = 0;
+        try {
+            //编写SQL语句
+            StringBuffer sql = new StringBuffer("INSERT into rainquality");
+            sql.append("(districtName,monitorTime,rain,monitoringStation,monitoringAddress)");
+            sql.append("VALUES(?,?,?,?,?)");
+            //INSERT into rainquality(districtName,monitorTime,rain,monitoringStation,monitoringAddress)
+            // VALUES('河北省','2020-02-19','3','承德市','承德')
+            //连接数据库
+            conn = BaseDao.getConn();
+            //preparedStatement对象
+            pstmt = conn.prepareStatement(sql.toString());
+            pstmt.setObject(1,rain.getDistricName());
+            pstmt.setObject(2,rain.getMonitorTime());
+            pstmt.setObject(3,rain.getRain());
+            pstmt.setObject(4,rain.getMonitoringStation());
+            pstmt.setObject(5,rain.getMonitoringAddress());
+            //执行SQL
+            num = pstmt.executeUpdate();
+        }catch (Exception e){
+            e.printStackTrace();
+            num = -1;
+        }
+        return num;
     }
 }
